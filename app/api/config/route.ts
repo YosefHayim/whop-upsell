@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readFile, writeFile, mkdir } from "fs/promises";
+import { defaultConfig, mergeConfig } from "@/lib/config";
+import { mkdir, readFile, writeFile } from "fs/promises";
+
+import type { DownsellConfig } from "@/lib/config";
 import { existsSync } from "fs";
 import path from "path";
-import type { DownsellConfig } from "@/lib/config";
-import { defaultConfig, mergeConfig } from "@/lib/config";
 
 const CONFIG_FILE = path.join(process.cwd(), ".whop-downsell-config.json");
 
@@ -32,7 +33,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as Partial<DownsellConfig>;
-    
+
     // Merge with existing config
     await ensureConfigFile();
     const existingData = await readFile(CONFIG_FILE, "utf-8");
@@ -49,4 +50,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
-
