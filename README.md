@@ -24,6 +24,8 @@ pnpm install
 yarn install
 ```
 
+**Note:** The project uses `@whop/sdk` version `0.0.13` (latest as of setup).
+
 ### 2. Configure Environment Variables
 
 Copy `env.example` to `.env.local` and fill in your Whop API key:
@@ -42,14 +44,32 @@ DEFAULT_PROMO_CODE=SAVE10
 
 **Get your API key and App ID from:** [Whop Developer Dashboard](https://whop.com/developer)
 
-### 3. Create Promo Code in Whop Dashboard
+### 3. Configure Whop MCP (Optional but Recommended)
+
+For best practices and direct access to Whop documentation in Cursor, configure the Whop MCP server:
+
+**Add to `~/.cursor/config/mcp.json`:**
+
+```json
+{
+  "mcpServers": {
+    "whop-docs": {
+      "url": "https://docs.whop.com/mcp"
+    }
+  }
+}
+```
+
+See `MCP_SETUP.md` for detailed instructions.
+
+### 4. Create Promo Code in Whop Dashboard
 
 1. Go to your Whop Developer Dashboard
 2. Navigate to Promo Codes section
 3. Create a promo code (e.g., `SAVE10`) with a 10% discount
 4. Ensure the promo code is active and applicable to your products
 
-### 4. Run Development Server
+### 5. Run Development Server
 
 ```bash
 npm run dev
@@ -58,6 +78,20 @@ npm run dev
 Open [http://localhost:3000](http://localhost:3000) to see the app.
 
 ## Usage
+
+### Local Development with whop-proxy (Recommended)
+
+For local development within Whop's iframe system, use `whop-proxy`:
+
+```bash
+# Install whop-proxy globally (if not already installed)
+npm install -g whop-proxy
+
+# Run the proxy server (defaults to port 3000)
+whop-proxy
+```
+
+This creates a secure tunnel allowing your local Next.js app to run within Whop's iframe environment.
 
 ### Testing the Exit Intent
 
