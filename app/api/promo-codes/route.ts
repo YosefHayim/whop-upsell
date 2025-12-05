@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import Whop from "@whop/sdk";
 
 // Initialize Whop SDK
@@ -107,10 +108,7 @@ export async function POST(request: NextRequest) {
     const body = (await request.json()) as { code: string; planId: string; companyId?: string };
 
     if (!body.code || !body.planId) {
-      return NextResponse.json(
-        { error: "code and planId are required in request body" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "code and planId are required in request body" }, { status: 400 });
     }
 
     if (!process.env.WHOP_API_KEY) {
@@ -129,7 +127,7 @@ export async function POST(request: NextRequest) {
       // Validate promo code by listing and filtering
       // The @whop/sdk v0.0.13 retrieve() method takes an ID, not code+planId
       // So we'll list promo codes and find the matching one
-      
+
       if (!body.companyId && !process.env.WHOP_COMPANY_ID) {
         return NextResponse.json(
           {
@@ -150,9 +148,7 @@ export async function POST(request: NextRequest) {
       // Find the promo code by code and plan
       const codes = (allCodes.data as Array<{ code: string; plan_ids?: string[]; id?: string }>) || [];
       const found = codes.find(
-        (pc) =>
-          pc.code.toLowerCase() === body.code.toLowerCase() &&
-          (pc.plan_ids?.includes(body.planId) || !pc.plan_ids || pc.plan_ids.length === 0)
+        (pc) => pc.code.toLowerCase() === body.code.toLowerCase() && (pc.plan_ids?.includes(body.planId) || !pc.plan_ids || pc.plan_ids.length === 0)
       );
 
       if (!found) {
