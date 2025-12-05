@@ -4,6 +4,7 @@ interface ClaimDiscountRequestBody {
   productId?: string;
   planId?: string;
   promoCode?: string;
+  experienceId?: string;
 }
 
 export async function POST(request: NextRequest) {
