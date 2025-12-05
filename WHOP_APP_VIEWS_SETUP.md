@@ -17,6 +17,7 @@ This app now supports both **Experience View** and **Dashboard View** as require
 4. Configure the following paths:
 
 #### Experience View Path:
+
 ```
 /experiences/[experienceId]
 ```
@@ -24,6 +25,7 @@ This app now supports both **Experience View** and **Dashboard View** as require
 This allows Whop to pass the experience ID dynamically: `/experiences/exp_xxxxxxxx`
 
 #### Dashboard View Path:
+
 ```
 /dashboard/[companyId]
 ```
@@ -89,6 +91,7 @@ Both views use Whop's authentication system:
 - **Dashboard View**: Requires admin access to the company
 
 The authentication is handled automatically via:
+
 - `x-whop-user-token` header (passed by Whop iframe)
 - `whopsdk.verifyUserToken()` - Verifies the token and gets user ID
 - `whopsdk.users.checkAccess()` - Checks access permissions
@@ -133,14 +136,17 @@ But for production/Whop integration, use:
 ## 🐛 Troubleshooting
 
 ### "Access Denied" in Experience View
+
 - User doesn't have access to the experience
 - Check that the experience is attached to a product the user has access to
 
 ### "Admin Access Required" in Dashboard View
+
 - User is not an admin of the company
 - Only company admins can access the dashboard
 
 ### SDK Errors
+
 - Verify `WHOP_API_KEY` and `WHOP_APP_ID` are set correctly
 - Check that your API key has the required permissions
 - Restart your dev server after changing env variables
@@ -154,6 +160,6 @@ But for production/Whop integration, use:
 5. Customize the configuration as needed
 
 For more information, see:
+
 - [Whop App Views Documentation](https://docs.whop.com/developer/guides/app-views)
 - [Whop Authentication Guide](https://docs.whop.com/developer/guides/authentication)
-

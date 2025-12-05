@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { whopsdk, verifyUserToken, checkCompanyAccess } from "@/lib/whop-sdk";
+import { verifyUserToken, checkCompanyAccess } from "@/lib/whop-sdk";
 import DashboardAdmin from "./DashboardAdmin";
 
 export default async function DashboardPage({

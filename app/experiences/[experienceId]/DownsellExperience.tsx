@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import DownsellModal from "@/app/components/DownsellModal";
-import { useExitIntent } from "@/app/hooks/useExitIntent";
+
 import type { DownsellConfig } from "@/lib/config";
+import DownsellModal from "@/app/components/DownsellModal";
 import { defaultConfig } from "@/lib/config";
+import { useExitIntent } from "@/app/hooks/useExitIntent";
 
 const STORAGE_KEY = "whop-downsell-shown";
 const STORAGE_KEY_DAILY = "whop-downsell-shown-daily";
@@ -15,11 +16,7 @@ interface DownsellExperienceProps {
   accessLevel: "customer" | "admin";
 }
 
-export default function DownsellExperience({
-  experienceId,
-  userId,
-  accessLevel,
-}: DownsellExperienceProps) {
+export default function DownsellExperience({ experienceId, userId, accessLevel }: DownsellExperienceProps) {
   const [showModal, setShowModal] = useState(false);
   const [productId, setProductId] = useState<string | null>(null);
   const [planId, setPlanId] = useState<string | null>(null);
@@ -176,9 +173,7 @@ export default function DownsellExperience({
     } catch (error: unknown) {
       console.error("Error claiming discount:", error);
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-      alert(
-        `There was an error processing your discount: ${errorMessage}. Please try again or contact support.`
-      );
+      alert(`There was an error processing your discount: ${errorMessage}. Please try again or contact support.`);
     }
   };
 
@@ -186,14 +181,12 @@ export default function DownsellExperience({
     <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-8 text-center">
-            Welcome
-          </h1>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-8 text-center">Welcome</h1>
 
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 mb-8">
             <p className="text-gray-600 dark:text-gray-300 text-lg">
-              The exit-intent downsell modal will appear when you move your mouse toward the top of
-              the page or after {config.exitIntent.inactivityDelay / 1000} seconds of inactivity.
+              The exit-intent downsell modal will appear when you move your mouse toward the top of the page or after {config.exitIntent.inactivityDelay / 1000}{" "}
+              seconds of inactivity.
             </p>
             {accessLevel === "admin" && (
               <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
@@ -206,9 +199,7 @@ export default function DownsellExperience({
 
           {productId && (
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
-              <h2 className="text-xl font-semibold text-blue-900 dark:text-blue-100 mb-2">
-                Current Product ID
-              </h2>
+              <h2 className="text-xl font-semibold text-blue-900 dark:text-blue-100 mb-2">Current Product ID</h2>
               <p className="text-blue-700 dark:text-blue-300 font-mono">{productId}</p>
             </div>
           )}
@@ -216,16 +207,8 @@ export default function DownsellExperience({
       </div>
 
       {showModal && (
-        <DownsellModal
-          onClose={handleClose}
-          onClaim={handleClaim}
-          config={config}
-          productId={productId}
-          planId={planId}
-          triggerType={triggerType}
-        />
+        <DownsellModal onClose={handleClose} onClaim={handleClaim} config={config} productId={productId} planId={planId} triggerType={triggerType} />
       )}
     </main>
   );
 }
-
