@@ -1,4 +1,4 @@
-import { checkExperienceAccess, verifyUserToken } from "@/lib/whop-sdk";
+import { checkExperienceAccess, verifyUserToken, whopsdk } from "@/lib/whop-sdk";
 
 import DownsellExperience from "./DownsellExperience";
 import { headers } from "next/headers";
@@ -24,14 +24,23 @@ export default async function ExperiencePage({ params }: { params: Promise<{ exp
       );
     }
 
-    // Get experience details to extract company/product info
-    // The experience ID can be used to get associated products/plans
-    // For now, we'll pass the experienceId and let the component handle it
+    // Try to get experience details to extract company ID
+    let companyId: string | null = null;
+    try {
+      const sdk = whopsdk();
+      const experience = await sdk.experiences.retrieve(experienceId);
+      // Experience object has a company object with id field
+      companyId = (experience as { company?: { id?: string } })?.company?.id || null;
+    } catch (error) {
+      // If we can't fetch experience details, continue without companyId
+      // The config API will use experienceId as fallback
+      console.warn("Could not fetch experience details for company ID:", error);
+    }
 
     // access.access_level can be "customer", "admin", or "no_access"
     const accessLevel = access.access_level === "admin" ? "admin" : "customer";
 
-    return <DownsellExperience experienceId={experienceId} userId={userId} accessLevel={accessLevel} />;
+    return <DownsellExperience experienceId={experienceId} userId={userId} accessLevel={accessLevel} companyId={companyId} />;
   } catch (error) {
     console.error("Error in ExperiencePage:", error);
     return (

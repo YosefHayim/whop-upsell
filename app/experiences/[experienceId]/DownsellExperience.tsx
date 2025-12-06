@@ -14,9 +14,10 @@ interface DownsellExperienceProps {
   experienceId: string;
   userId: string;
   accessLevel: "customer" | "admin";
+  companyId?: string | null;
 }
 
-export default function DownsellExperience({ experienceId, userId, accessLevel }: DownsellExperienceProps) {
+export default function DownsellExperience({ experienceId, userId, accessLevel, companyId }: DownsellExperienceProps) {
   const [showModal, setShowModal] = useState(false);
   const [productId, setProductId] = useState<string | null>(null);
   const [planId, setPlanId] = useState<string | null>(null);
@@ -27,7 +28,14 @@ export default function DownsellExperience({ experienceId, userId, accessLevel }
     // Load configuration
     const loadConfig = async () => {
       try {
-        const response = await fetch("/api/config");
+        // Build query params for config API
+        const params = new URLSearchParams();
+        if (companyId) {
+          params.set("companyId", companyId);
+        }
+        params.set("experienceId", experienceId);
+
+        const response = await fetch(`/api/config?${params.toString()}`);
         if (response.ok) {
           const data = (await response.json()) as DownsellConfig;
           setConfig(data);

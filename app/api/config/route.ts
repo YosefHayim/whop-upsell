@@ -1,47 +1,102 @@
 import { NextRequest, NextResponse } from "next/server";
 import { defaultConfig, mergeConfig } from "@/lib/config";
-import { mkdir, readFile, writeFile } from "fs/promises";
 
 import type { DownsellConfig } from "@/lib/config";
-import { existsSync } from "fs";
-import path from "path";
+import { getSupabase } from "@/lib/supabase";
+import { verifyUserToken } from "@/lib/whop-sdk";
 
-const CONFIG_FILE = path.join(process.cwd(), ".whop-downsell-config.json");
-
-// Ensure config directory exists
-async function ensureConfigFile() {
-  if (!existsSync(CONFIG_FILE)) {
-    await writeFile(CONFIG_FILE, JSON.stringify(defaultConfig, null, 2), "utf-8");
-  }
-}
-
-// GET - Retrieve current configuration
-export async function GET() {
+// GET - Retrieve configuration for a company/experience
+export async function GET(request: NextRequest) {
   try {
-    await ensureConfigFile();
-    const configData = await readFile(CONFIG_FILE, "utf-8");
-    const config = JSON.parse(configData) as DownsellConfig;
-    return NextResponse.json(config);
+    const { userId } = await verifyUserToken();
+    const supabase = getSupabase();
+
+    // Get company_id and experience_id from query params
+    const searchParams = request.nextUrl.searchParams;
+    const companyId = searchParams.get("companyId");
+    const experienceId = searchParams.get("experienceId");
+
+    if (!companyId) {
+      // If no company ID, return default config
+      return NextResponse.json(defaultConfig);
+    }
+
+    // Try to fetch existing config from Supabase
+    const { data, error } = await supabase
+      .from("user_configs")
+      .select("config")
+      .eq("company_id", companyId)
+      .eq("user_id", userId)
+      .eq("experience_id", experienceId || null)
+      .maybeSingle();
+
+    if (error && error.code !== "PGRST116") {
+      // PGRST116 is "not found" which is fine, we'll use default
+      console.error("Error fetching config from Supabase:", error);
+    }
+
+    if (data?.config) {
+      // Merge with defaults to ensure all fields are present
+      const config = mergeConfig(data.config as Partial<DownsellConfig>);
+      return NextResponse.json(config);
+    }
+
+    // Return default config if none found
+    return NextResponse.json(defaultConfig);
   } catch (error: unknown) {
     console.error("Error reading config:", error);
-    // Return default config if file doesn't exist or is invalid
+    // Return default config on error
     return NextResponse.json(defaultConfig);
   }
 }
 
-// POST - Update configuration
+// POST - Update configuration for a company/experience
 export async function POST(request: NextRequest) {
   try {
-    const body = (await request.json()) as Partial<DownsellConfig>;
+    const { userId } = await verifyUserToken();
+    const supabase = getSupabase();
 
-    // Merge with existing config
-    await ensureConfigFile();
-    const existingData = await readFile(CONFIG_FILE, "utf-8");
-    const existingConfig = JSON.parse(existingData) as DownsellConfig;
-    const updatedConfig = mergeConfig({ ...existingConfig, ...body });
+    const body = (await request.json()) as {
+      config?: Partial<DownsellConfig>;
+      companyId: string;
+      experienceId?: string;
+    };
 
-    // Save updated config
-    await writeFile(CONFIG_FILE, JSON.stringify(updatedConfig, null, 2), "utf-8");
+    const { config: partialConfig, companyId, experienceId } = body;
+
+    if (!companyId) {
+      return NextResponse.json({ error: "companyId is required" }, { status: 400 });
+    }
+
+    // Get existing config or use default
+    const { data: existingData } = await supabase
+      .from("user_configs")
+      .select("config")
+      .eq("company_id", companyId)
+      .eq("user_id", userId)
+      .eq("experience_id", experienceId || null)
+      .maybeSingle();
+
+    const existingConfig = existingData?.config ? (existingData.config as Partial<DownsellConfig>) : {};
+    const updatedConfig = mergeConfig({ ...existingConfig, ...partialConfig });
+
+    // Upsert config in Supabase
+    const { error: upsertError } = await supabase.from("user_configs").upsert(
+      {
+        company_id: companyId,
+        experience_id: experienceId || null,
+        user_id: userId,
+        config: updatedConfig,
+      },
+      {
+        onConflict: "company_id,experience_id,user_id",
+      }
+    );
+
+    if (upsertError) {
+      console.error("Error saving config to Supabase:", upsertError);
+      return NextResponse.json({ error: "Failed to save configuration" }, { status: 500 });
+    }
 
     return NextResponse.json({ success: true, config: updatedConfig });
   } catch (error: unknown) {

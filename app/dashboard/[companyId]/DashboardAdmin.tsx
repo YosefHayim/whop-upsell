@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import type { DownsellConfig } from "@/lib/config";
 import { defaultConfig } from "@/lib/config";
 
@@ -23,7 +24,7 @@ export default function DashboardAdmin({ companyId, userId }: DashboardAdminProp
 
   const loadConfig = async () => {
     try {
-      const response = await fetch("/api/config");
+      const response = await fetch(`/api/config?companyId=${companyId}`);
       if (response.ok) {
         const data = (await response.json()) as DownsellConfig;
         setConfig(data);
@@ -54,14 +55,18 @@ export default function DashboardAdmin({ companyId, userId }: DashboardAdminProp
       const response = await fetch("/api/config", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(config),
+        body: JSON.stringify({
+          config,
+          companyId,
+        }),
       });
 
       if (response.ok) {
         setSaveMessage("Configuration saved successfully!");
         setTimeout(() => setSaveMessage(null), 3000);
       } else {
-        throw new Error("Failed to save configuration");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to save configuration");
       }
     } catch (error) {
       setSaveMessage("Error saving configuration. Please try again.");
@@ -75,14 +80,7 @@ export default function DashboardAdmin({ companyId, userId }: DashboardAdminProp
     setConfig((prev) => ({ ...prev, [key]: value }));
   };
 
-  const updateNestedConfig = <
-    K extends keyof DownsellConfig,
-    SK extends keyof DownsellConfig[K]
-  >(
-    key: K,
-    subKey: SK,
-    value: DownsellConfig[K][SK]
-  ) => {
+  const updateNestedConfig = <K extends keyof DownsellConfig, SK extends keyof DownsellConfig[K]>(key: K, subKey: SK, value: DownsellConfig[K][SK]) => {
     setConfig((prev) => ({
       ...prev,
       [key]: { ...prev[key], [subKey]: value },
@@ -102,9 +100,7 @@ export default function DashboardAdmin({ companyId, userId }: DashboardAdminProp
       <div className="max-w-6xl mx-auto px-4">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
           <div className="mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Downsell Configuration Dashboard
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Downsell Configuration Dashboard</h1>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Company ID: <code className="font-mono">{companyId}</code>
             </p>
@@ -124,33 +120,23 @@ export default function DashboardAdmin({ companyId, userId }: DashboardAdminProp
 
           {/* Exit Intent Settings */}
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-              Exit Intent Settings
-            </h2>
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Exit Intent Settings</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Inactivity Delay (milliseconds)
-                </label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Inactivity Delay (milliseconds)</label>
                 <input
                   type="number"
                   value={config.exitIntent.inactivityDelay}
-                  onChange={(e) =>
-                    updateNestedConfig("exitIntent", "inactivityDelay", parseInt(e.target.value) || 0)
-                  }
+                  onChange={(e) => updateNestedConfig("exitIntent", "inactivityDelay", parseInt(e.target.value) || 0)}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Mouse Threshold (pixels from top)
-                </label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mouse Threshold (pixels from top)</label>
                 <input
                   type="number"
                   value={config.exitIntent.mouseThreshold}
-                  onChange={(e) =>
-                    updateNestedConfig("exitIntent", "mouseThreshold", parseInt(e.target.value) || 0)
-                  }
+                  onChange={(e) => updateNestedConfig("exitIntent", "mouseThreshold", parseInt(e.target.value) || 0)}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
@@ -161,23 +147,17 @@ export default function DashboardAdmin({ companyId, userId }: DashboardAdminProp
                   onChange={(e) => updateNestedConfig("exitIntent", "enabled", e.target.checked)}
                   className="mr-2"
                 />
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Enable Exit Intent Detection
-                </label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Enable Exit Intent Detection</label>
               </div>
             </div>
           </section>
 
           {/* Modal Content */}
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-              Modal Content
-            </h2>
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Modal Content</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Headline
-                </label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Headline</label>
                 <input
                   type="text"
                   value={config.modal.headline}
@@ -197,9 +177,7 @@ export default function DashboardAdmin({ companyId, userId }: DashboardAdminProp
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  CTA Button Text (use {"{discount}"} as placeholder)
-                </label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">CTA Button Text (use {"{discount}"} as placeholder)</label>
                 <input
                   type="text"
                   value={config.modal.ctaText}
@@ -208,9 +186,7 @@ export default function DashboardAdmin({ companyId, userId }: DashboardAdminProp
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  "No Thanks" Text
-                </label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">"No Thanks" Text</label>
                 <input
                   type="text"
                   value={config.modal.noThanksText}
@@ -223,29 +199,21 @@ export default function DashboardAdmin({ companyId, userId }: DashboardAdminProp
 
           {/* Discount Settings */}
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-              Discount Settings
-            </h2>
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Discount Settings</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Discount Percentage
-                </label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Discount Percentage</label>
                 <input
                   type="number"
                   min="0"
                   max="100"
                   value={config.discount.percentage}
-                  onChange={(e) =>
-                    updateNestedConfig("discount", "percentage", parseInt(e.target.value) || 0)
-                  }
+                  onChange={(e) => updateNestedConfig("discount", "percentage", parseInt(e.target.value) || 0)}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Promo Code
-                </label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Promo Code</label>
                 <input
                   type="text"
                   value={config.discount.promoCode}
@@ -258,21 +226,15 @@ export default function DashboardAdmin({ companyId, userId }: DashboardAdminProp
 
           {/* Timer Settings */}
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-              Timer Settings
-            </h2>
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Timer Settings</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Timer Duration (seconds)
-                </label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Timer Duration (seconds)</label>
                 <input
                   type="number"
                   min="0"
                   value={config.timer.duration}
-                  onChange={(e) =>
-                    updateNestedConfig("timer", "duration", parseInt(e.target.value) || 0)
-                  }
+                  onChange={(e) => updateNestedConfig("timer", "duration", parseInt(e.target.value) || 0)}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
@@ -283,58 +245,42 @@ export default function DashboardAdmin({ companyId, userId }: DashboardAdminProp
                   onChange={(e) => updateNestedConfig("timer", "enabled", e.target.checked)}
                   className="mr-2"
                 />
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Enable Countdown Timer
-                </label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Enable Countdown Timer</label>
               </div>
             </div>
           </section>
 
           {/* Display Rules */}
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-              Display Rules
-            </h2>
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Display Rules</h2>
             <div className="space-y-4">
               <div className="flex items-center">
                 <input
                   type="checkbox"
                   checked={config.displayRules.showOncePerSession}
-                  onChange={(e) =>
-                    updateNestedConfig("displayRules", "showOncePerSession", e.target.checked)
-                  }
+                  onChange={(e) => updateNestedConfig("displayRules", "showOncePerSession", e.target.checked)}
                   className="mr-2"
                 />
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Show Once Per Session
-                </label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Show Once Per Session</label>
               </div>
               <div className="flex items-center">
                 <input
                   type="checkbox"
                   checked={config.displayRules.showOncePerDay}
-                  onChange={(e) =>
-                    updateNestedConfig("displayRules", "showOncePerDay", e.target.checked)
-                  }
+                  onChange={(e) => updateNestedConfig("displayRules", "showOncePerDay", e.target.checked)}
                   className="mr-2"
                 />
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Show Once Per Day
-                </label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Show Once Per Day</label>
               </div>
             </div>
           </section>
 
           {/* Design Customization */}
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-              Design Customization
-            </h2>
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Design Customization</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Primary Color (hex)
-                </label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Primary Color (hex)</label>
                 <input
                   type="color"
                   value={config.design.primaryColor}
@@ -343,9 +289,7 @@ export default function DashboardAdmin({ companyId, userId }: DashboardAdminProp
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Secondary Color (hex)
-                </label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Secondary Color (hex)</label>
                 <input
                   type="color"
                   value={config.design.secondaryColor}
@@ -354,14 +298,10 @@ export default function DashboardAdmin({ companyId, userId }: DashboardAdminProp
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Modal Size
-                </label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Modal Size</label>
                 <select
                   value={config.design.modalSize}
-                  onChange={(e) =>
-                    updateNestedConfig("design", "modalSize", e.target.value as "sm" | "md" | "lg")
-                  }
+                  onChange={(e) => updateNestedConfig("design", "modalSize", e.target.value as "sm" | "md" | "lg")}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
                   <option value="sm">Small</option>
@@ -375,33 +315,23 @@ export default function DashboardAdmin({ companyId, userId }: DashboardAdminProp
           {/* Analytics Summary */}
           {analytics && (
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-                Analytics (Last 30 Days)
-              </h2>
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Analytics (Last 30 Days)</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
                   <div className="text-sm text-blue-600 dark:text-blue-400">Modal Shown</div>
-                  <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-                    {analytics.summary.totalModalShown}
-                  </div>
+                  <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">{analytics.summary.totalModalShown}</div>
                 </div>
                 <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
                   <div className="text-sm text-green-600 dark:text-green-400">Claim Clicked</div>
-                  <div className="text-2xl font-bold text-green-900 dark:text-green-100">
-                    {analytics.summary.totalClaimClicked}
-                  </div>
+                  <div className="text-2xl font-bold text-green-900 dark:text-green-100">{analytics.summary.totalClaimClicked}</div>
                 </div>
                 <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
                   <div className="text-sm text-purple-600 dark:text-purple-400">Conversion Rate</div>
-                  <div className="text-2xl font-bold text-purple-900 dark:text-purple-100">
-                    {analytics.summary.conversionRate.toFixed(1)}%
-                  </div>
+                  <div className="text-2xl font-bold text-purple-900 dark:text-purple-100">{analytics.summary.conversionRate.toFixed(1)}%</div>
                 </div>
                 <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg">
                   <div className="text-sm text-orange-600 dark:text-orange-400">Checkout Rate</div>
-                  <div className="text-2xl font-bold text-orange-900 dark:text-orange-100">
-                    {analytics.summary.checkoutRate.toFixed(1)}%
-                  </div>
+                  <div className="text-2xl font-bold text-orange-900 dark:text-orange-100">{analytics.summary.checkoutRate.toFixed(1)}%</div>
                 </div>
               </div>
             </section>
@@ -422,4 +352,3 @@ export default function DashboardAdmin({ companyId, userId }: DashboardAdminProp
     </div>
   );
 }
-

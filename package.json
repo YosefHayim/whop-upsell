@@ -1,15 +1,16 @@
 {
-  "name": "whop-downsell",
+  "name": "whop-last-chance",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "whop-proxy --command 'next dev --turbo'",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "whop-proxy": "whop-proxy"
+    "supabase:types": "node scripts/generate-types.js"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.86.2",
     "@whop/sdk": "^0.0.13",
     "next": "^14.2.0",
     "react": "^18.3.1",
@@ -19,7 +20,9 @@
     "@types/node": "^20.14.0",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
+    "@whop-apps/dev-proxy": "0.0.1-canary.117",
     "autoprefixer": "^10.4.19",
+    "dotenv": "^17.2.3",
     "eslint": "^9.39.1",
     "eslint-config-next": "^16.0.7",
     "postcss": "^8.4.38",
