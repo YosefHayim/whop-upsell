@@ -111,7 +111,6 @@ export default function DownsellModal({
     } catch (error: unknown) {
       console.error("Error claiming discount:", error);
       setIsClaiming(false);
-      // Error is handled by the parent component (page.tsx)
     }
   };
 
@@ -143,14 +142,134 @@ export default function DownsellModal({
     return template.replace("{discount}", `${config.discount.percentage}%`);
   };
 
+  // Get card variation styles
+  const getCardVariationStyles = () => {
+    const variation = config.design.cardVariation || "modern";
+    const primaryColor = config.design.primaryColor || "#2563eb";
+    const secondaryColor = config.design.secondaryColor || "#10b981";
+    const bgColor = config.design.backgroundColor || "#ffffff";
+    const textColor = config.design.textColor || "#111827";
+    const useGradient = config.design.useGradient || false;
+    const borderStyle = config.design.borderStyle || "shadow";
+
+    const baseStyles: React.CSSProperties = {
+      color: textColor,
+    };
+
+    const borderClasses: Record<string, string> = {
+      none: "",
+      solid: "border-2",
+      dashed: "border-2 border-dashed",
+      shadow: "shadow-2xl",
+    };
+
+    const borderStyleObj: React.CSSProperties = {};
+    if (borderStyle === "solid" || borderStyle === "dashed") {
+      borderStyleObj.borderColor = primaryColor;
+    }
+
+    switch (variation) {
+      case "minimal":
+        return {
+          container: `bg-white dark:bg-gray-50 ${borderClasses[borderStyle]} rounded-lg`,
+          header: "text-2xl font-semibold",
+          style: { ...baseStyles, backgroundColor: bgColor, ...borderStyleObj },
+        };
+
+      case "bold":
+        return {
+          container: `${borderClasses[borderStyle]} rounded-3xl`,
+          header: "text-4xl font-black text-white",
+          style: {
+            background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
+            ...borderStyleObj,
+          },
+        };
+
+      case "gradient":
+        return {
+          container: `${borderClasses[borderStyle]} rounded-2xl`,
+          header: `text-3xl font-bold ${useGradient ? "text-white" : ""}`,
+          style: useGradient
+            ? {
+                background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor}, ${primaryColor})`,
+                ...borderStyleObj,
+              }
+            : { ...baseStyles, backgroundColor: bgColor, ...borderStyleObj },
+        };
+
+      case "card":
+        return {
+          container: `bg-white dark:bg-gray-800 ${borderClasses[borderStyle]} rounded-xl ${borderStyle === "solid" || borderStyle === "dashed" ? "border-4" : ""}`,
+          header: "text-3xl font-bold",
+          style: { ...baseStyles, backgroundColor: bgColor, ...borderStyleObj },
+        };
+
+      case "modern":
+        return {
+          container: `bg-white dark:bg-gray-800 ${borderClasses[borderStyle]} rounded-2xl backdrop-blur-sm`,
+          header: "text-3xl font-bold",
+          style: { ...baseStyles, backgroundColor: bgColor, ...borderStyleObj },
+        };
+
+      case "classic":
+        return {
+          container: `bg-white dark:bg-gray-800 ${borderClasses[borderStyle]} rounded-lg border-2 border-gray-200`,
+          header: "text-2xl font-bold",
+          style: { ...baseStyles, backgroundColor: bgColor, ...borderStyleObj },
+        };
+
+      default:
+        return {
+          container: `bg-white dark:bg-gray-800 ${borderClasses[borderStyle]} rounded-2xl`,
+          header: "text-3xl font-bold",
+          style: { ...baseStyles, backgroundColor: bgColor, ...borderStyleObj },
+        };
+    }
+  };
+
+  const cardStyles = getCardVariationStyles();
   const modalSizeClasses = {
     sm: "max-w-sm",
     md: "max-w-md",
     lg: "max-w-lg",
   };
 
+  // Get button style based on variation
+  const getButtonStyle = () => {
+    const variation = config.design.cardVariation || "modern";
+    const primaryColor = config.design.primaryColor || "#2563eb";
+    const secondaryColor = config.design.secondaryColor || "#10b981";
+
+    if (variation === "bold") {
+      return {
+        background: "white",
+        color: "#111827",
+      };
+    }
+
+    if (variation === "gradient" && config.design.useGradient) {
+      return {
+        background: "white",
+        color: "#111827",
+      };
+    }
+
+    if (variation === "card") {
+      return {
+        background: `linear-gradient(to right, ${primaryColor}, ${secondaryColor})`,
+        color: "white",
+      };
+    }
+
+    return {
+      background: `linear-gradient(to right, ${primaryColor}, ${primaryColor}dd)`,
+      color: "white",
+    };
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
       {/* Backdrop with blur */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -160,12 +279,13 @@ export default function DownsellModal({
 
       {/* Modal */}
       <div
-        className={`relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl ${modalSizeClasses[config.design.modalSize]} w-full p-8 transform transition-all`}
+        className={`relative ${cardStyles.container} ${modalSizeClasses[config.design.modalSize]} w-full p-8 transform transition-all animate-in zoom-in-95 duration-300`}
+        style={cardStyles.style}
       >
         {/* Close button */}
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors z-10"
           aria-label="Close modal"
         >
           <svg
@@ -181,13 +301,25 @@ export default function DownsellModal({
           </svg>
         </button>
 
+        {/* Discount Badge - Show prominently for checkout abandonment */}
+        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+          <div
+            className="px-4 py-2 rounded-full text-white font-bold text-lg shadow-lg"
+            style={{
+              background: `linear-gradient(135deg, ${config.design.primaryColor}, ${config.design.secondaryColor})`,
+            }}
+          >
+            {config.discount.percentage}% OFF
+          </div>
+        </div>
+
         {/* Header */}
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4 text-center">
+        <h2 className={`${cardStyles.header} mb-4 text-center mt-4`}>
           {config.modal.headline}
         </h2>
 
         {/* Body */}
-        <p className="text-lg text-gray-600 dark:text-gray-300 mb-6 text-center">
+        <p className={`text-lg mb-6 text-center ${config.design.cardVariation === "bold" || (config.design.cardVariation === "gradient" && config.design.useGradient) ? "text-white/90" : "text-gray-600 dark:text-gray-300"}`}>
           {formatDescription(config.modal.description)}
         </p>
 
@@ -203,7 +335,7 @@ export default function DownsellModal({
                   stroke="currentColor"
                   strokeWidth="8"
                   fill="none"
-                  className="text-gray-200 dark:text-gray-700"
+                  className={config.design.cardVariation === "bold" || (config.design.cardVariation === "gradient" && config.design.useGradient) ? "text-white/20" : "text-gray-200 dark:text-gray-700"}
                 />
                 <circle
                   cx="64"
@@ -220,7 +352,7 @@ export default function DownsellModal({
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                <span className={`text-2xl font-bold ${config.design.cardVariation === "bold" || (config.design.cardVariation === "gradient" && config.design.useGradient) ? "text-white" : "text-gray-900 dark:text-white"}`}>
                   {formatTime(timeLeft)}
                 </span>
               </div>
@@ -232,15 +364,13 @@ export default function DownsellModal({
         <button
           onClick={handleClaim}
           disabled={isClaiming || (config.timer.enabled && timeLeft <= 0)}
-          style={{
-            background: `linear-gradient(to right, ${config.design.primaryColor}, ${config.design.primaryColor}dd)`,
-          }}
-          className="w-full hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 shadow-lg"
+          style={getButtonStyle()}
+          className="w-full hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed font-bold py-4 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 shadow-lg"
         >
           {isClaiming ? (
             <span className="flex items-center justify-center">
               <svg
-                className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                className="animate-spin -ml-1 mr-3 h-5 w-5"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -269,7 +399,7 @@ export default function DownsellModal({
         {/* No thanks link */}
         <button
           onClick={handleClose}
-          className="w-full mt-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-sm transition-colors"
+          className={`w-full mt-4 text-sm transition-colors ${config.design.cardVariation === "bold" || (config.design.cardVariation === "gradient" && config.design.useGradient) ? "text-white/70 hover:text-white" : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"}`}
         >
           {config.modal.noThanksText}
         </button>

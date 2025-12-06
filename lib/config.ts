@@ -40,6 +40,12 @@ export interface DownsellConfig {
     primaryColor: string;
     secondaryColor: string;
     modalSize: "sm" | "md" | "lg";
+    cardVariation: "minimal" | "bold" | "gradient" | "card" | "modern" | "classic";
+    backgroundColor?: string; // Modal background color
+    textColor?: string; // Main text color
+    accentColor?: string; // Accent highlights
+    useGradient?: boolean; // Use gradient backgrounds
+    borderStyle?: "none" | "solid" | "dashed" | "shadow"; // Border style
   };
 
   // Product/Plan Selection
@@ -78,6 +84,12 @@ export const defaultConfig: DownsellConfig = {
     primaryColor: "#2563eb", // blue-600
     secondaryColor: "#10b981", // green-500
     modalSize: "md",
+    cardVariation: "modern", // Default to modern style
+    backgroundColor: "#ffffff", // White background
+    textColor: "#111827", // Gray-900
+    accentColor: "#f59e0b", // Amber-500 for highlights
+    useGradient: false,
+    borderStyle: "shadow",
   },
   productSelection: {},
 };
@@ -92,7 +104,20 @@ export function mergeConfig(partial: Partial<DownsellConfig>): DownsellConfig {
     discount: { ...defaultConfig.discount, ...partial.discount },
     timer: { ...defaultConfig.timer, ...partial.timer },
     displayRules: { ...defaultConfig.displayRules, ...partial.displayRules },
-    design: { ...defaultConfig.design, ...partial.design },
+    design: {
+      ...defaultConfig.design,
+      ...partial.design,
+      // Ensure all design fields have defaults
+      primaryColor: partial.design?.primaryColor || defaultConfig.design.primaryColor,
+      secondaryColor: partial.design?.secondaryColor || defaultConfig.design.secondaryColor,
+      modalSize: partial.design?.modalSize || defaultConfig.design.modalSize,
+      cardVariation: partial.design?.cardVariation || defaultConfig.design.cardVariation,
+      backgroundColor: partial.design?.backgroundColor || defaultConfig.design.backgroundColor,
+      textColor: partial.design?.textColor || defaultConfig.design.textColor,
+      accentColor: partial.design?.accentColor || defaultConfig.design.accentColor,
+      useGradient: partial.design?.useGradient ?? defaultConfig.design.useGradient,
+      borderStyle: partial.design?.borderStyle || defaultConfig.design.borderStyle,
+    },
     productSelection: { ...defaultConfig.productSelection, ...partial.productSelection },
   };
 }

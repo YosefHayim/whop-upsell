@@ -345,6 +345,25 @@ export default function AdminPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Card Variation Style
+                </label>
+                <select
+                  value={config.design.cardVariation}
+                  onChange={(e) =>
+                    updateNestedConfig("design", "cardVariation", e.target.value as DownsellConfig["design"]["cardVariation"])
+                  }
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                >
+                  <option value="minimal">Minimal - Clean and simple</option>
+                  <option value="bold">Bold - Vibrant gradient background</option>
+                  <option value="gradient">Gradient - Smooth color transitions</option>
+                  <option value="card">Card - Elevated card style</option>
+                  <option value="modern">Modern - Sleek and contemporary (default)</option>
+                  <option value="classic">Classic - Traditional design</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Modal Size
                 </label>
                 <select
@@ -358,6 +377,67 @@ export default function AdminPage() {
                   <option value="md">Medium</option>
                   <option value="lg">Large</option>
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Background Color (hex)
+                </label>
+                <input
+                  type="color"
+                  value={config.design.backgroundColor || "#ffffff"}
+                  onChange={(e) => updateNestedConfig("design", "backgroundColor", e.target.value)}
+                  className="w-full h-12 border border-gray-300 dark:border-gray-600 rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Text Color (hex)
+                </label>
+                <input
+                  type="color"
+                  value={config.design.textColor || "#111827"}
+                  onChange={(e) => updateNestedConfig("design", "textColor", e.target.value)}
+                  className="w-full h-12 border border-gray-300 dark:border-gray-600 rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Accent Color (hex)
+                </label>
+                <input
+                  type="color"
+                  value={config.design.accentColor || "#f59e0b"}
+                  onChange={(e) => updateNestedConfig("design", "accentColor", e.target.value)}
+                  className="w-full h-12 border border-gray-300 dark:border-gray-600 rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Border Style
+                </label>
+                <select
+                  value={config.design.borderStyle || "shadow"}
+                  onChange={(e) =>
+                    updateNestedConfig("design", "borderStyle", e.target.value as DownsellConfig["design"]["borderStyle"])
+                  }
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                >
+                  <option value="none">None</option>
+                  <option value="solid">Solid Border</option>
+                  <option value="dashed">Dashed Border</option>
+                  <option value="shadow">Shadow Only (default)</option>
+                </select>
+              </div>
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={config.design.useGradient || false}
+                  onChange={(e) => updateNestedConfig("design", "useGradient", e.target.checked)}
+                  className="mr-2"
+                />
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Use Gradient Background (for gradient card variation)
+                </label>
               </div>
             </div>
           </section>
